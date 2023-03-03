@@ -29,8 +29,27 @@ services:
       - db
     volumes:
       - ./:/server
+  client:
+    container_name: client
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    image: client
+    depends_on:
+      - api
+    ports:
+      - '4173:4173'
+    expose:
+      - '4173'
+    links:
+      - db
+      - api
+    volumes:
+      - ./:/client    
 volumes:
   db:
     driver: local
-  cache:
+  api:
     driver: local
+  client:
+    driver: local    

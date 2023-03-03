@@ -1,5 +1,11 @@
 // Require the framework and instantiate it
 const fastify = require('fastify')({ logger: true })
+const path = require('path')
+
+fastify.register(require('@fastify/static'), {
+  root: path.join(__dirname, 'assets'),
+  prefix: '/images/',
+})
 
 fastify.register(require('@fastify/redis'), { 
   host: 'db', 
@@ -8,7 +14,6 @@ fastify.register(require('@fastify/redis'), {
   family: 4   // 4 (IPv4) or 6 (IPv6)
 })
 
-// Declare a route
 fastify.get('/', async (request, reply) => {
   return { hello: 'world' }
 })
