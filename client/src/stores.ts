@@ -1,7 +1,7 @@
 import { writable } from 'svelte/store';
 import { generateFakeImageDataset } from './utils';
 
-export const imagesStore = writable(generateFakeImageDataset(100));
+export const imagesStore = writable(generateFakeImageDataset(30));
 
 export const applicationStore = writable({
     itemsPerPage: 15,
