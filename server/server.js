@@ -8,9 +8,8 @@ fastify.register(require('@fastify/static'), {
 })
 
 fastify.register(require('@fastify/redis'), { 
-  host: 'db', 
-  password: process.env.REDIS_PASSWORD,
-  port: process.env.REDIS_PORT, // Redis port
+  host: 'localhost',
+  port: 6379, // Redis port
   family: 4   // 4 (IPv4) or 6 (IPv6)
 })
 
