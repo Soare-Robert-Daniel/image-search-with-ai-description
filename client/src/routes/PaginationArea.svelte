@@ -73,4 +73,15 @@
     button:hover {
         background-color: #ccc;
     }
+
+    @media (max-width: 640px) {
+        .pagination-area {
+            margin-top: 10px;
+            padding: 0px;
+        }
+
+        button {
+            font-size: small;
+        }
+    }
 </style>

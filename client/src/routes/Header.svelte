@@ -27,7 +27,7 @@
 	</nav>
 
 	<div class="corner">
-		<a href="https://github.com/Soare-Robert-Daniel/image-search-with-ai-description">
+		<a href="https://github.com/Soare-Robert-Daniel/image-search-with-ai-description" target="_blank" rel="noreferrer">
 			<img src={github} alt="GitHub" />
 		</a>
 	</div>
