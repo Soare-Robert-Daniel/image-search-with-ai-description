@@ -9,6 +9,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "@fastify/redis": "^6.1.0",
     "fastify": "^4.14.0"
   }
 }

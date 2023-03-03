@@ -1,18 +1,19 @@
 // Require the framework and instantiate it
 const fastify = require('fastify')({ logger: true })
 
+fastify.register(require('@fastify/redis'), { 
+  host: 'db', 
+  password: process.env.REDIS_PASSWORD,
+  port: process.env.REDIS_PORT, // Redis port
+  family: 4   // 4 (IPv4) or 6 (IPv6)
+})
+
 // Declare a route
 fastify.get('/', async (request, reply) => {
   return { hello: 'world' }
 })
 
-// Run the server!
-const start = async () => {
-  try {
-    await fastify.listen({ port: 9000 })
-  } catch (err) {
-    fastify.log.error(err)
-    process.exit(1)
-  }
-}
-start()
+fastify.listen({ port: 9000 }, err => {
+  if (err) throw err
+  console.log(`server listening on ${fastify.server.address().port}`)
+})
