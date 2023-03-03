@@ -1,0 +1,36 @@
+version: '3.8'
+services:
+  db:
+    image: redis/redis-stack-server:latest
+    restart: always
+    ports:
+      - '6379:6379'
+    command: redis-server --save 20 1 --loglevel warning --requirepass eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81
+    volumes: 
+      - db:/data
+  api:
+    container_name: server-api
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    image: server-api
+    depends_on:
+      - db
+    ports:
+      - '9000:9000'
+    expose:
+      - '9000'  
+    environment:
+      NODE_ENV: development
+      REDIS_HOST: db
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81
+    links:
+      - db
+    volumes:
+      - ./:/server
+volumes:
+  db:
+    driver: local
+  cache:
+    driver: local
