@@ -46,10 +46,11 @@ fastify.get('/search', async (request, reply) => {
     reply.send({error: "query not found"});
   }
 
-  console.log(`search query ${searchQuery}`);
+  const search = searchQuery.split(" ").filter(s => s.trim().length !== 0).join("|");
+  console.log(`search query: '${search}'`);
 
   // use the search function of the redis client to search the prompt index for the query string
-  const results = await client.ft.search('idx:prompt', `@prompt:(${searchQuery})`);
+  const results = await client.ft.search('idx:prompt', `@prompt:(${search})`);
 
   // send the results back to the client
   reply.send(results);
@@ -62,7 +63,7 @@ fastify.get('/search', async (request, reply) => {
 
 fastify.get('/', async (request, reply) => {
   // get all the items from the redis database
-  const results = await client.hGetAll('*');
+  const results = await client.ft.search('idx:prompt', '*');
   reply.send(results);
 })
 
