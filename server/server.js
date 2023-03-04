@@ -32,7 +32,6 @@ fastify.register(require('@fastify/static'), {
 })
 
 fastify.get('/search', async (request, reply) => {
-  const { redis } = fastify
   const searchQuery = request.query.query;
 
   if(searchQuery == undefined) {
@@ -42,7 +41,7 @@ fastify.get('/search', async (request, reply) => {
 
   console.log(`search query ${searchQuery}`);
 
-  const results = await client.ft.search('idx:prompt', `@prompt:{${searchQuery}}`);
+  const results = await client.ft.search('idx:prompt', `@prompt:(${searchQuery})`);
 
   reply.send(results);
 
@@ -72,10 +71,13 @@ fastify.listen({ port: 9000 }, async err => {
     PREFIX: 'noderedis:images'
   });
 
-  data_examples.forEach(async entry => {
+  // await client.json.set('noderedis:images', '$', data_examples); 
+
+  for await (const entry of data_examples) {
     console.log(`adding '${entry.name}' to database`);
-    await client.json.set('noderedis:images', '$', entry);
-  });
+    await client.hSet(`noderedis:images:${entry.id}`, entry); 
+  }
+
   
   console.log(`server listening on ${fastify.server.address().port}`)
 })
