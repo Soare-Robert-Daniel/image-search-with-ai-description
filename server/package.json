@@ -9,6 +9,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "@fastify/cors": "^8.2.0",
     "@fastify/redis": "^6.1.0",
     "@fastify/static": "^6.9.0",
     "@redis/json": "^1.0.4",

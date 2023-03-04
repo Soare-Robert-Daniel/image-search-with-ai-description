@@ -1,7 +1,8 @@
-import { writable } from 'svelte/store';
+import { writable, type Writable } from 'svelte/store';
+import type { ImageItem } from './common';
 import { generateFakeImageDataset } from './utils';
 
-export const imagesStore = writable(generateFakeImageDataset(30));
+export const imagesStore: Writable<ImageItem[]> = writable([]);
 
 export const applicationStore = writable({
     itemsPerPage: 15,
