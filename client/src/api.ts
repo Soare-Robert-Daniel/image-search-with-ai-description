@@ -6,7 +6,7 @@ const HOST = 'http://localhost:9000';
  * Get all the images from the server.
  * @returns An array of image items.
  */
-export async function getImages(): Promise<{ total: number, documents: {id: string, value: ImageItem}[]}> {
+export async function getImages(): Promise<{ total: number, documents: ImageItem[]}> {
     const response = await fetch(`${HOST}`);
     return await response.json();
 }
@@ -17,7 +17,7 @@ export async function getImages(): Promise<{ total: number, documents: {id: stri
 * @param search The search term.
 * @returns An array of image items.
 */
-export async function searchImages(search: string): Promise<{ total: number, documents: {id: string, value: ImageItem}[]}> {
+export async function searchImages(search: string): Promise<{ total: number, documents: ImageItem[]}> {
     const response = await fetch(`${HOST}/search?${new URLSearchParams({ query: search })}`);
     return await response.json();
 }

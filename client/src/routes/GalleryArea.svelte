@@ -15,7 +15,7 @@
     onMount(() => {
         getImages().then((result) => {
             try {
-                imagesStore.set( result?.documents?.map(x => x.value) ?? []);
+                imagesStore.set( result?.documents ?? []);
 
                 if( result?.total > 0 ) {
                     $applicationStore.searchStatus = "success";

@@ -3,6 +3,7 @@ export type ImageItem = {
     src: string;
     name: string;
     prompt?: string;
+    score?: number;
 }
 
 export default {};

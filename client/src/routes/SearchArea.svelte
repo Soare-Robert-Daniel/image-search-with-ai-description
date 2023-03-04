@@ -15,7 +15,12 @@
        searchImages(searchTerm).then((result) => {
             try {
                 console.log(`Search term: ${searchTerm}. Response:`, result);
-                imagesStore.set( result?.documents?.map(x => x.value) ?? []);
+
+                const images = result?.documents ?? [];
+                // sort images by score (descending)
+                images.sort((a, b) => (b?.score ?? 0) - (a?.score ?? 0));
+
+                imagesStore.set( images );
 
                 if( result?.total > 0 ) {
                     $applicationStore.searchStatus = "success";
