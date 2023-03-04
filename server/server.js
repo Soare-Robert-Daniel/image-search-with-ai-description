@@ -1,9 +1,15 @@
 // Require the framework and instantiate it
-const redis = require('redis')
 const fastify = require('fastify')({ logger: true })
 
 const path = require('path')
 const data_examples = require('./mock-data')
+const sqlite3 = require('sqlite3');
+const db = new sqlite3.Database(path.resolve(__dirname, './images.sqlite'), (err) => {
+  if (err) {
+    return console.error(err.message);
+  }
+  console.log('Connected to the in-memory SQlite database.');
+});
 
 fastify.register(require('@fastify/cors'), (instance) => {
   return (req, callback) => {
@@ -28,8 +34,6 @@ fastify.register(require('@fastify/static'), {
   prefix: '/images/',
 })
 
-const client = redis.createClient();
-client.on('error', err => console.log('Redis Client Error', err));
 
 // this is the search endpoint, which returns a list of prompts
 // that match the search query. It uses the redisearch engine to
@@ -47,52 +51,30 @@ fastify.get('/search', async (request, reply) => {
   }
 
   console.log(`search query ${searchQuery}`);
-
-  // use the search function of the redis client to search the prompt index for the query string
-  const results = await client.ft.search('idx:prompt', `@prompt:(${searchQuery})`);
-
-  // send the results back to the client
-  reply.send(results);
-
 })
 
 // This code will get the list of images from the redis database
 // The images will be stored as a json object in the database
 // The code will return a json object with the list of images
 
-fastify.get('/', async (request, reply) => {
+fastify.get('/', (request, reply) => {
   // get all the items from the redis database
-  const results = await client.hGetAll('*');
-  reply.send(results);
+  db.all("SELECT * FROM images", (err, res) => {
+    reply.send(res);
+  });
 })
 
 fastify.listen({ port: 9000 }, async err => {
   if (err) throw err
-  await client.connect();
 
-  // Clear the redis database
-  await client.flushAll('ASYNC', (err, succeeded) => {
-    console.log(`Redis cleaned: ${succeeded}`); 
-  });
-  
-  // create redis search index
-  await client.ft.create('idx:prompt', {
-    prompt: {
-      type: redis.SchemaFieldTypes.TEXT,
-      SORTABLE: true
-    } 
-  }, {
-    ON: 'HASH',
-    PREFIX: 'noderedis:images'
-  });
+  db.run("CREATE TABLE IF NOT EXISTS images (prompt TEXT, name TEXT, src TEXT, id INT PRIMARY KEY)");
 
-  // Add data to the redis database
+  // Add data to the sqlite database
   for await (const entry of data_examples) {
     console.log(`adding '${entry.name}' to database`);
-    await client.hSet(`noderedis:images:${entry.id}`, entry); 
+    db.run("INSERT OR IGNORE INTO images(prompt,name,src,id) VALUES (?, ?, ?, ?)", [ entry.prompt, entry.name, entry.src, entry.id ]);
   }
 
-  
   console.log(`server listening on ${fastify.server.address().port}`)
 })
 
