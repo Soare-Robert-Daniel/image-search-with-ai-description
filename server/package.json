@@ -2,10 +2,11 @@
   "name": "server",
   "version": "0.0.1",
   "description": "The server",
-  "main": "index.js",
+  "main": "server.mjs",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "type": "module",
   "author": "",
   "license": "MIT",
   "dependencies": {
@@ -15,6 +16,7 @@
     "@redis/json": "^1.0.4",
     "@redis/search": "^1.1.2",
     "fastify": "^4.14.0",
+    "file-type": "^18.2.1",
     "redis": "^4.6.5"
   }
 }

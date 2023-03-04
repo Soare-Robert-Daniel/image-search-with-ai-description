@@ -123,4 +123,4 @@ const data_examples = [
     }
 ]
 
-module.exports = data_examples;
+export default data_examples;

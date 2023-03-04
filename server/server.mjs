@@ -1,11 +1,20 @@
 // Require the framework and instantiate it
-const redis = require('redis')
-const fastify = require('fastify')({ logger: true })
+import { createClient, SchemaFieldTypes } from 'redis'
+import Fastify from 'fastify';
+import { writeFileSync } from 'fs'
+import path, { join } from 'path'
+import data_examples from './mock-data.mjs'
+import { fileTypeFromBuffer } from 'file-type'
+import cors from '@fastify/cors';
+import fastStatic from '@fastify/static';
+import { fileURLToPath } from 'url';
 
-const path = require('path')
-const data_examples = require('./mock-data')
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-fastify.register(require('@fastify/cors'), (instance) => {
+const fastify = Fastify({ logger: true });
+
+fastify.register(cors, (instance) => {
   return (req, callback) => {
     const corsOptions = {
       // This is NOT recommended for production as it enables reflection exploits
@@ -23,12 +32,12 @@ fastify.register(require('@fastify/cors'), (instance) => {
 })
 
 
-fastify.register(require('@fastify/static'), {
-  root: path.join(__dirname, 'assets'),
+fastify.register(fastStatic, {
+  root: join(__dirname, 'assets'),
   prefix: '/images/',
 })
 
-const client = redis.createClient();
+const client = createClient();
 client.on('error', err => console.log('Redis Client Error', err));
 
 // this is the search endpoint, which returns a list of prompts
@@ -66,6 +75,37 @@ fastify.get('/', async (request, reply) => {
   reply.send(results);
 })
 
+
+fastify.post('/image', async (request, reply) => {
+  if( request.body == undefined ) {
+    reply.statusCode = 400;
+    reply.send({error: "body not found"});
+  }
+
+  if( request.body.data == undefined ) {
+    reply.statusCode = 400;
+    reply.send({error: "data not found"});
+  }
+
+  if( request.body.name == undefined ) {
+    reply.statusCode = 400;
+    reply.send({error: "name not found"});
+  }
+
+  const { data, name } = request.body;
+
+  const base64Data = data.split(';base64,').pop();
+  const imageBuffer = Buffer.from(base64Data, 'base64');
+  const imageType = await fileTypeFromBuffer(imageBuffer);
+
+  const hash = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15) + '__' + ( name.split(' ').filter(x => x).join('_') ) + '.' + imageType.ext;
+  const imagePath = join(__dirname, 'assets', hash);
+  writeFileSync(imagePath, imageBuffer);
+
+ 
+  reply.send({id: hash, name: name, path: imagePath});
+})
+
 fastify.listen({ port: 9000 }, async err => {
   if (err) throw err
   await client.connect();
@@ -78,7 +118,7 @@ fastify.listen({ port: 9000 }, async err => {
   // create redis search index
   await client.ft.create('idx:prompt', {
     prompt: {
-      type: redis.SchemaFieldTypes.TEXT,
+      type: SchemaFieldTypes.TEXT,
       SORTABLE: true
     } 
   }, {
