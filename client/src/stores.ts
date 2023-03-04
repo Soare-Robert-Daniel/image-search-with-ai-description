@@ -9,4 +9,5 @@ export const applicationStore = writable({
     currentPage: 1,
     totalPages: 10,
     viewImage: -1,
+    searchStatus: 'idle',
 });

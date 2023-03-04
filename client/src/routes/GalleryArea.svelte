@@ -13,10 +13,19 @@
     }
 
     onMount(() => {
-        console.log("GalleryArea onMount");
-        getImages().then((images: ImageItem[]) => {
-            console.log(images);
-            imagesStore.set(images);
+        getImages().then((result) => {
+            try {
+                imagesStore.set( result?.documents?.map(x => x.value) ?? []);
+
+                if( result?.total > 0 ) {
+                    $applicationStore.searchStatus = "success";
+                } else {
+                    $applicationStore.searchStatus = "no-results";
+                }
+            } catch(e) {
+                console.error(e);
+                $applicationStore.searchStatus = "error";
+            }
         })
     });
     

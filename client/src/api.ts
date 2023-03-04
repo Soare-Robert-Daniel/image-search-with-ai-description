@@ -6,9 +6,9 @@ const HOST = 'http://localhost:9000';
  * Get all the images from the server.
  * @returns An array of image items.
  */
-export async function getImages(): Promise<ImageItem[]> {
+export async function getImages(): Promise<{ total: number, documents: {id: string, value: ImageItem}[]}> {
     const response = await fetch(`${HOST}`);
-    return await response.json() as ImageItem[];
+    return await response.json();
 }
 
 
