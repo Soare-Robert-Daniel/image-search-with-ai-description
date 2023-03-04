@@ -8,5 +8,5 @@ export const applicationStore = writable({
     itemsPerPage: 15,
     currentPage: 1,
     totalPages: 10,
-    viewImage: -1
+    viewImage: -1,
 });

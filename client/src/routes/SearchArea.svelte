@@ -1,8 +1,15 @@
 <script lang="ts">
+	import { searchImages } from "../api";
+	import { imagesStore } from "../stores";
+
+
     let searchTerm: string = '';
 
     function search() {
-        console.log(`Search: ${searchTerm}`);
+       searchImages(searchTerm).then((result) => {
+            console.log(`Search term: ${searchTerm}. Response:`, result);
+            imagesStore.set( result.documents?.map(x => x.value));
+        })
     }
 </script>
 

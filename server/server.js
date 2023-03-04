@@ -23,32 +23,46 @@ fastify.register(require('@fastify/cors'), (instance) => {
 })
 
 
-const client = redis.createClient();
-client.on('error', err => console.log('Redis Client Error', err));
-
 fastify.register(require('@fastify/static'), {
   root: path.join(__dirname, 'assets'),
   prefix: '/images/',
 })
 
+const client = redis.createClient();
+client.on('error', err => console.log('Redis Client Error', err));
+
+// this is the search endpoint, which returns a list of prompts
+// that match the search query. It uses the redisearch engine to
+// perform the search
+
 fastify.get('/search', async (request, reply) => {
+  // get the query string from the request
   const searchQuery = request.query.query;
 
+  // check to make sure that the query string was passed in
   if(searchQuery == undefined) {
+    // if it wasn't, set the status code to 400 (bad request) and send back an error message
     reply.statusCode = 400;
     reply.send({error: "query not found"});
   }
 
   console.log(`search query ${searchQuery}`);
 
+  // use the search function of the redis client to search the prompt index for the query string
   const results = await client.ft.search('idx:prompt', `@prompt:(${searchQuery})`);
 
+  // send the results back to the client
   reply.send(results);
 
 })
 
+// This code will get the list of images from the redis database
+// The images will be stored as a json object in the database
+// The code will return a json object with the list of images
+
 fastify.get('/', async (request, reply) => {
-  const results = await client.json.get('noderedis:images', {});
+  // get all the items from the redis database
+  const results = await client.hGetAll('*');
   reply.send(results);
 })
 
@@ -56,6 +70,7 @@ fastify.listen({ port: 9000 }, async err => {
   if (err) throw err
   await client.connect();
 
+  // Clear the redis database
   await client.flushAll('ASYNC', (err, succeeded) => {
     console.log(`Redis cleaned: ${succeeded}`); 
   });
@@ -71,8 +86,7 @@ fastify.listen({ port: 9000 }, async err => {
     PREFIX: 'noderedis:images'
   });
 
-  // await client.json.set('noderedis:images', '$', data_examples); 
-
+  // Add data to the redis database
   for await (const entry of data_examples) {
     console.log(`adding '${entry.name}' to database`);
     await client.hSet(`noderedis:images:${entry.id}`, entry); 
