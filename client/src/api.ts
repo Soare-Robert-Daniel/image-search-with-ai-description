@@ -18,7 +18,7 @@ export async function getImages(): Promise<ImageItem[]> {
 * @returns An array of image items.
 */
 export async function searchImages(search: string): Promise<{ total: number, documents: {id: string, value: ImageItem}[]}> {
-    const response = await fetch(`${HOST}/search?query=${search}`);
+    const response = await fetch(`${HOST}/search?${new URLSearchParams({ query: search })}`);
     return await response.json();
 }
 
