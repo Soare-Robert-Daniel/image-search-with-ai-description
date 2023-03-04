@@ -41,7 +41,7 @@ const data_examples = [
         id: 7,
         src: `${host_path}example-7.png`,
         name: 'Example 7',
-        prmopt: 'a cartoon girl with a star on her head, pink iconic character, space molly, toon, girl, pixie, kid, chibi, by Robert Freebairn, cartoon illustration, by Bob Ringwood, super-hero girl, cooky, martine, happy girl, star, nighttime!, cartoonish and simplistic, dancing character, sally, gogo',
+        prompt: 'a cartoon girl with a star on her head, pink iconic character, space molly, toon, girl, pixie, kid, chibi, by Robert Freebairn, cartoon illustration, by Bob Ringwood, super-hero girl, cooky, martine, happy girl, star, nighttime!, cartoonish and simplistic, dancing character, sally, gogo',
     },
     {
         id: 8,

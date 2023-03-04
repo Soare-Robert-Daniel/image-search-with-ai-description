@@ -9,6 +9,7 @@ import fastStatic from '@fastify/static';
 import { fileURLToPath } from 'url';
 import sqlite3 from 'sqlite3';
 import axios from 'axios';
+import { Sequelize, DataTypes, Model } from 'sequelize';
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -16,12 +17,37 @@ const __dirname = path.dirname(__filename);
 
 const fastify = Fastify({ logger: true });
 
-const db = new sqlite3.Database(path.resolve(__dirname, './images.sqlite'), (err) => {
-  if (err) {
-    return console.error(err.message);
-  }
-  console.log('Connected to the in-memory SQlite database.');
+const sequelize = new Sequelize({
+  dialect: 'sqlite',
+  storage: path.resolve(__dirname, './images.sqlite')
 });
+
+try {
+  await sequelize.authenticate();
+  console.log('Connection has been established successfully.');
+} catch (error) {
+  console.error('Unable to connect to the database:', error);
+}
+
+
+const Image = sequelize.define('Image', {
+  name: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
+  src: {
+    type: DataTypes.STRING
+  },
+  prompt: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
+  id: {
+    type: DataTypes.NUMBER ,
+    primaryKey: true
+  }
+}, { timestamps: false });
+
 
 fastify.register(cors, (instance) => {
   return (req, callback) => {
@@ -65,33 +91,40 @@ fastify.get('/search', async (request, reply) => {
 
   // make an call to remote api to find the 
   // similarity betwen search query and database prompts
+  const images = await Image.findAll();
+  console.log(JSON.stringify(images));
   const requestBody = {
     inputs: {
       source_sentence: searchQuery,
-      sentences: [
-        "a man was sitting on a bench",
-        "a woman was buying groceries"
-      ]
+      sentences: images.map(image => image.prompt)
     }
   };
-  const config = {
-    headers: { Authorization: `Bearer ${token}` }
-  };
-  const result = await axios.post("https://api-inference.huggingface.co/models/sentence-transformers/all-MiniLM-L6-v2", requestBody, config);
 
-  console.log(result.data);
+  const result = await axios.post(
+    "https://api-inference.huggingface.co/models/sentence-transformers/all-MiniLM-L6-v2", 
+    requestBody, 
+    { headers: { Authorization: `Bearer ${token}` , "Content-Type": "application/json" } });
 
+  
+  const data = images.map((image, index) => ({
+    score: result.data[index],
+    src: image.src,
+    name: image.name,
+    id: image.id,
+    prompt: image.prompt
+  }))
+
+  reply.send(data);
 })
 
 // This code will get the list of images from the redis database
 // The images will be stored as a json object in the database
 // The code will return a json object with the list of images
 
-fastify.get('/', (request, reply) => {
+fastify.get('/', async (request, reply) => {
   // get all the items from the redis database
-  db.all("SELECT * FROM images", (err, res) => {
-    reply.send(res);
-  });
+  const results = await Image.findAll();
+  reply.send(results);
 })
 
 
@@ -127,13 +160,13 @@ fastify.post('/image', async (request, reply) => {
 
 fastify.listen({ port: 9000 }, async err => {
   if (err) throw err
-
-  db.run("CREATE TABLE IF NOT EXISTS images (prompt TEXT, name TEXT, src TEXT, id INT PRIMARY KEY)");
-
+  await sequelize.sync({ force: true });
   // Add data to the sqlite database
   for await (const entry of data_examples) {
     console.log(`adding '${entry.name}' to database`);
-    db.run("INSERT OR IGNORE INTO images(prompt,name,src,id) VALUES (?, ?, ?, ?)", [ entry.prompt, entry.name, entry.src, entry.id ]);
+    if(entry.prompt) {
+      await Image.upsert({ name:entry.name, prompt:entry.prompt, src:entry.src, id:entry.id })
+    }
   }
 
   console.log(`server listening on ${fastify.server.address().port}`)
