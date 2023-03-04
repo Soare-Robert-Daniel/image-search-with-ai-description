@@ -1,14 +1,24 @@
 <script lang="ts">
+	import { onMount } from "svelte";
+	import { getImages } from "../api";
 	import type { ImageItem } from "../common";
 	import { applicationStore, imagesStore } from "../stores";
 	import ImageTile from "./ImageTile.svelte";
 
     let images: ImageItem[] = [];
 
-   $: if( $imagesStore.length > ($applicationStore.currentPage - 1) * $applicationStore.itemsPerPage ) {
+    $: if( $imagesStore.length > ($applicationStore.currentPage - 1) * $applicationStore.itemsPerPage ) {
         // TODO: Refactor this
         images = $imagesStore.slice(($applicationStore.currentPage - 1) * $applicationStore.itemsPerPage, $applicationStore.currentPage * $applicationStore.itemsPerPage);
     }
+
+    onMount(() => {
+        console.log("GalleryArea onMount");
+        getImages().then((images: ImageItem[]) => {
+            console.log(images);
+            imagesStore.set(images);
+        })
+    });
     
 </script>
 <div class="gallery">
