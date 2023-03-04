@@ -1,5 +1,4 @@
 // Require the framework and instantiate it
-import { createClient, SchemaFieldTypes } from 'redis'
 import Fastify from 'fastify';
 import { writeFileSync } from 'fs'
 import path, { join } from 'path'
@@ -8,13 +7,15 @@ import { fileTypeFromBuffer } from 'file-type'
 import cors from '@fastify/cors';
 import fastStatic from '@fastify/static';
 import { fileURLToPath } from 'url';
+import sqlite3 from 'sqlite3';
+import axios from 'axios';
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const fastify = Fastify({ logger: true });
 
-const sqlite3 = require('sqlite3');
 const db = new sqlite3.Database(path.resolve(__dirname, './images.sqlite'), (err) => {
   if (err) {
     return console.error(err.message);
@@ -45,13 +46,10 @@ fastify.register(fastStatic, {
   prefix: '/images/',
 })
 
-const client = createClient();
-client.on('error', err => console.log('Redis Client Error', err));
-
 // this is the search endpoint, which returns a list of prompts
 // that match the search query. It uses the redisearch engine to
 // perform the search
-
+const token = "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";
 fastify.get('/search', async (request, reply) => {
   // get the query string from the request
   const searchQuery = request.query.query;
@@ -64,6 +62,25 @@ fastify.get('/search', async (request, reply) => {
   }
 
   console.log(`search query ${searchQuery}`);
+
+  // make an call to remote api to find the 
+  // similarity betwen search query and database prompts
+  const requestBody = {
+    inputs: {
+      source_sentence: searchQuery,
+      sentences: [
+        "a man was sitting on a bench",
+        "a woman was buying groceries"
+      ]
+    }
+  };
+  const config = {
+    headers: { Authorization: `Bearer ${token}` }
+  };
+  const result = await axios.post("https://api-inference.huggingface.co/models/sentence-transformers/all-MiniLM-L6-v2", requestBody, config);
+
+  console.log(result.data);
+
 })
 
 // This code will get the list of images from the redis database
