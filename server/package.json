@@ -11,6 +11,9 @@
   "dependencies": {
     "@fastify/redis": "^6.1.0",
     "@fastify/static": "^6.9.0",
-    "fastify": "^4.14.0"
+    "@redis/json": "^1.0.4",
+    "@redis/search": "^1.1.2",
+    "fastify": "^4.14.0",
+    "redis": "^4.6.5"
   }
 }
