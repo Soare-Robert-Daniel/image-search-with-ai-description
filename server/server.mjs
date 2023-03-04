@@ -1,8 +1,19 @@
 // Require the framework and instantiate it
-const fastify = require('fastify')({ logger: true })
+import { createClient, SchemaFieldTypes } from 'redis'
+import Fastify from 'fastify';
+import { writeFileSync } from 'fs'
+import path, { join } from 'path'
+import data_examples from './mock-data.mjs'
+import { fileTypeFromBuffer } from 'file-type'
+import cors from '@fastify/cors';
+import fastStatic from '@fastify/static';
+import { fileURLToPath } from 'url';
 
-const path = require('path')
-const data_examples = require('./mock-data')
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const fastify = Fastify({ logger: true });
+
 const sqlite3 = require('sqlite3');
 const db = new sqlite3.Database(path.resolve(__dirname, './images.sqlite'), (err) => {
   if (err) {
@@ -11,7 +22,7 @@ const db = new sqlite3.Database(path.resolve(__dirname, './images.sqlite'), (err
   console.log('Connected to the in-memory SQlite database.');
 });
 
-fastify.register(require('@fastify/cors'), (instance) => {
+fastify.register(cors, (instance) => {
   return (req, callback) => {
     const corsOptions = {
       // This is NOT recommended for production as it enables reflection exploits
@@ -29,11 +40,13 @@ fastify.register(require('@fastify/cors'), (instance) => {
 })
 
 
-fastify.register(require('@fastify/static'), {
-  root: path.join(__dirname, 'assets'),
+fastify.register(fastStatic, {
+  root: join(__dirname, 'assets'),
   prefix: '/images/',
 })
 
+const client = createClient();
+client.on('error', err => console.log('Redis Client Error', err));
 
 // this is the search endpoint, which returns a list of prompts
 // that match the search query. It uses the redisearch engine to
@@ -62,6 +75,37 @@ fastify.get('/', (request, reply) => {
   db.all("SELECT * FROM images", (err, res) => {
     reply.send(res);
   });
+})
+
+
+fastify.post('/image', async (request, reply) => {
+  if( request.body == undefined ) {
+    reply.statusCode = 400;
+    reply.send({error: "body not found"});
+  }
+
+  if( request.body.data == undefined ) {
+    reply.statusCode = 400;
+    reply.send({error: "data not found"});
+  }
+
+  if( request.body.name == undefined ) {
+    reply.statusCode = 400;
+    reply.send({error: "name not found"});
+  }
+
+  const { data, name } = request.body;
+
+  const base64Data = data.split(';base64,').pop();
+  const imageBuffer = Buffer.from(base64Data, 'base64');
+  const imageType = await fileTypeFromBuffer(imageBuffer);
+
+  const hash = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15) + '__' + ( name.split(' ').filter(x => x).join('_') ) + '.' + imageType.ext;
+  const imagePath = join(__dirname, 'assets', hash);
+  writeFileSync(imagePath, imageBuffer);
+
+ 
+  reply.send({id: hash, name: name, path: imagePath});
 })
 
 fastify.listen({ port: 9000 }, async err => {
