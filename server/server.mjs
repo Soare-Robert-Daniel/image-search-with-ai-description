@@ -1,6 +1,6 @@
 // Require the framework and instantiate it
 import Fastify from 'fastify';
-import { existsSync, mkdirSync, writeFileSync } from 'fs'
+import { existsSync, mkdirSync, writeFileSync, readFileSync } from 'fs'
 import path, { join } from 'path'
 import data_examples from './mock-data.mjs'
 import { fileTypeFromBuffer } from 'file-type'
@@ -94,7 +94,14 @@ async function checkImages() {
   const newImages = await getAllNewImagesFromDb();
   
   newImages.forEach(async (image) => {
-    const promptUrl = getVerificationUrl();
+    if (!image.path) {
+      return;
+    }
+
+    const base64Image = readFileSync(path, { encoding: 'base64' });
+    const imageBuffer = Buffer.from(base64Data, 'base64');
+    const { mime } = await fileTypeFromBuffer(imageBuffer);
+    const promptUrl = getVerificationUrl(`data:${mime};base64,${base64Image}`);
     if (!promptUrl) {
       return;
     }
