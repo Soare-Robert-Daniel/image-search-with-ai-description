@@ -65,7 +65,7 @@
     }
 
     @media (max-width: 640px) {
-        img {
+        img, .prompt {
             width: 150px;
             height: 150px;
         }
@@ -75,4 +75,6 @@
             font-size: small;
         }
     }
+
+
 </style>
