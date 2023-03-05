@@ -15,6 +15,8 @@ const analyzerToken = process.env.ANALYZER_TOKEN;
 
 console.log(searchToken)
 
+let urlsQueue = [];
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -31,7 +33,6 @@ try {
 } catch (error) {
   console.error('Unable to connect to the database:', error);
 }
-
 
 const Image = sequelize.define('Image', {
   id: {
@@ -56,6 +57,91 @@ const Image = sequelize.define('Image', {
   }
 }, { timestamps: false });
 
+
+async function getAllNewImagesFromDb() {
+  return await Image.findAll({
+    where: {
+      status: 'new'
+    }
+  });
+}
+
+async function getVerificationUrl(imageUrl) {
+  const baseUrl = 'https://api.replicate.com/v1/predictions';
+  const token = 'fake-token';
+
+  try {
+    const res = await axios.post(baseUrl, {
+      version: "a4a8bafd6089e1716b06057c42b19378250d008b80fe87caa5cd36d40c1eda90",
+      input: {
+        image: 'https://images.unsplash.com/photo-1674574124649-778f9afc0e9c?ixlib=rb-4.0.3&ixid=MnwxMjA3fDF8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80',
+        clip_model_name: 'ViT-L-14/openai',
+        mode: 'fast'
+      }
+    },
+    { headers: { Authorization: `Token ${token}`, "Content-Type": "application/json" } },
+    );
+
+    if (res.data?.status === 'starting') {
+      return res.data?.urls?.get;
+    }
+  } catch (err) {
+    console.log(err);
+  }
+}
+
+async function checkImages() {
+  const newImages = await getAllNewImagesFromDb();
+  
+  newImages.forEach(async (image) => {
+    const promptUrl = getVerificationUrl();
+    if (!promptUrl) {
+      return;
+    }
+    
+    await Image.update(
+      { status: 'processing' },
+      { where: { id: image.id } }
+    );
+
+    urlsQueue.push({
+      id: image.id,
+      promptUrl: promptUrl
+    });
+  });
+}
+
+async function verifyImagePromptStatus(item) {
+  try {
+    const res = await axios.get(item.promptUrl,
+    { headers: { Authorization: `Token ${token}`, "Content-Type": "application/json" } },
+    );
+
+    if (res.data?.status === 'succeeded') {
+      await Image.update(
+        { status: 'finished', prompt: res.data?.output },
+        { where: { id: item.id } }
+      );
+
+      urlsQueue = urlsQueue.filter(x => x.id !== item.id);
+    } else {
+      return;
+    }
+  } catch (err) {
+    console.log(err);
+  }
+}
+
+async function verifyQueue() {
+  await checkImages();
+
+  if (urlsQueue.length > 0) {
+    const item = urlsQueue[0];
+    verifyImagePromptStatus(item);
+  }
+}
+
+setInterval(verifyQueue, 2000);
 
 fastify.register(cors, (instance) => {
   return (req, callback) => {
@@ -200,7 +286,7 @@ fastify.listen({ port: 9000 }, async err => {
   for await (const entry of data_examples) {
     console.log(`adding '${entry.name}' to database`);
     if (entry.prompt) {
-      await Image.upsert({ name: entry.name, prompt: entry.prompt, src: entry.src, id: entry.id, status: 'ready' })
+      await Image.upsert({ name: entry.name, prompt: null, src: entry.src, id: entry.id, status: 'new' })
     }
   }
 
