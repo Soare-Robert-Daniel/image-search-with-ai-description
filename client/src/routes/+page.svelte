@@ -5,6 +5,7 @@
 	import SearchArea from './SearchArea.svelte';
 	import GalleryArea from './GalleryArea.svelte';
 	import PaginationArea from './PaginationArea.svelte';
+	import LoadArea from './LoadArea.svelte';
 </script>
 
 <svelte:head>
@@ -14,6 +15,7 @@
 
 <section>
 	<SearchArea />
+	<LoadArea />
 	<GalleryArea />
 	<PaginationArea />
 </section>

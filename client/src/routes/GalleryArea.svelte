@@ -7,9 +7,9 @@
 
     let images: ImageItem[] = [];
 
-    $: if( $imagesStore.length > ($applicationStore.currentPage - 1) * $applicationStore.itemsPerPage ) {
+    $: if( $imagesStore.length > ($applicationStore.currentPage) * $applicationStore.itemsPerPage ) {
         // TODO: Refactor this
-        images = $imagesStore.slice(($applicationStore.currentPage - 1) * $applicationStore.itemsPerPage, $applicationStore.currentPage * $applicationStore.itemsPerPage);
+        images = $imagesStore.slice(($applicationStore.currentPage) * $applicationStore.itemsPerPage, ($applicationStore.currentPage + 1) * $applicationStore.itemsPerPage);
     }
 
     onMount(() => {
@@ -30,7 +30,7 @@
     });
     
 </script>
-<div class="gallery">
+<div class="gallery p-2 max-w-4xl bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
     <div class="container">
         {#each images as image}
             <ImageTile name={image.name} src={image.src} prompt={image.prompt} />
@@ -51,7 +51,7 @@
     .container {
         width: 100%;
         display: grid;
-        grid-template-columns: repeat(auto-fill, 200px);
+        grid-template-columns: repeat(auto-fill, 210px);
         grid-gap: 10px;
         justify-content: center;
         justify-items: center;
@@ -64,7 +64,7 @@
         }
 
         .container {
-            grid-template-columns: repeat(auto-fill, 150px);
+            grid-template-columns: repeat(auto-fill, 160px);
         }
     }
 </style>
