@@ -1,6 +1,6 @@
 import type { ImageItem } from "./common";
 
-const HOST = 'http://localhost:9000';
+const HOST = 'https://chimeinapp.net';
 
 /**
  * Get all the images from the server.

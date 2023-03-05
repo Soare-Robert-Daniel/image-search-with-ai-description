@@ -298,7 +298,7 @@ fastify.post('/image', async (request, reply) => {
   reply.send({ id: hash, name: name, src: imageUrl, path: imagePath });
 })
 
-fastify.listen({ port: 9000 }, async err => {
+fastify.listen({ port: 3000 }, async err => {
   if (err) throw err
   await sequelize.sync({ force: true });
   // Add data to the sqlite database
