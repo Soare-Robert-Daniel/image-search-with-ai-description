@@ -4,17 +4,23 @@ A small project for a Hackathon. Use AI to generate image description which can 
 Run server in server folder:
 
 ```bash
-node /server.js
+cd server
+node server.cjs
 ```
 Run UI in client folder:
 
 ```bash
+cd client
 npm run dev
 ```
 
-Redis Server with docker:
-```bash
-docker run -d --name redis-stack -p 6379:6379 -p 8001:8001 redis/redis-stack:latest
-```
+### Tech Stack
+- Server: Node.js with Fastify
+- Client: SvelteKit
+- Database: SQLite
+- Client Hosting: Vercel
+- Server Hosting: ███████████
+- Semantic Search API: https://huggingface.co/tasks/sentence-similarity
+- Image Description API: [clip-interrogator](https://replicate.com/pharmapsychotic/clip-interrogator/versions/a4a8bafd6089e1716b06057c42b19378250d008b80fe87caa5cd36d40c1eda90)
 
-:information_source: All of them run on `localhost`.
+:information_source: All of them can run on `localhost`.
