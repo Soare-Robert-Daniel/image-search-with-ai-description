@@ -10,16 +10,20 @@
     }
 </script>
 
-<div class="relative block max-w-sm p-1 rounded-lg hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700" class:show={show}>
+<div class="relative block max-w-sm p-1 mt-1 rounded-lg hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700" class:show={show}>
     {#if show}
         <div class="prompt overflow-y-auto">
-            <p>{prompt}</p>
+            {#if prompt}
+                <p>{prompt}</p>
+            {:else}
+                <p>Still processing. Check later.</p>
+            {/if}
         </div>
     {:else}
         <img alt={prompt} {src} >
     {/if}
     <div class="metadata mt-2">
-        <p>{name}</p>
+        <p class="truncate">{name}</p>
         <div class="actions flex items-center justify-center">
             <button on:click={onShowClick} class="text-blue-700 hover:text-white border border-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-2 py-1 text-center dark:border-blue-500 dark:text-blue-500 dark:hover:text-white dark:hover:bg-blue-600 dark:focus:ring-blue-800">
                 {#if show}
@@ -56,56 +60,18 @@
         margin: 0px;
     }
 
-    .btn-show {
-        background-color: white;
-        font-size: small;
-        border: none;
-        border-radius: 5px;
-        padding: 5px;
-        box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.5);
-        z-index: 100;
-    }
-
-    .btn-show:hover {
-        background-color: #ccc;
-    }
-
-    .overlay {
-        position: absolute;
-        top: 0px;
-        left: 0px;
-        width: 100%;
-        height: 200px;
-        background-color: rgba(0, 0, 0, 0.6);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-        padding: 5px;
-        box-sizing: border-box;
-
-        color: white;
-
-        overflow-y: auto;
+    .metadata p {
+        max-width: 150px;
     }
 
     @media (max-width: 640px) {
-        .img-box {
-            background: #ccc;
-        }
-
-        img, .overlay {
+        img {
             width: 150px;
             height: 150px;
         }
 
         .metadata {
             width: 150px;
-            font-size: small;
-        }
-
-        .overlay {
             font-size: small;
         }
     }

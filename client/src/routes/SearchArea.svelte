@@ -24,6 +24,7 @@
 
                 if( result?.total > 0 ) {
                     $applicationStore.searchStatus = "success";
+                    $applicationStore.currentPage = 0;
                 } else {
                     $applicationStore.searchStatus = "no-results";
                 }
@@ -38,7 +39,7 @@
 
 <div class="w-full max-w-4xl p-2 bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
     <h1 class="mb-4 text-4xl font-extrabold leading-none tracking-tight text-gray-900 md:text-5xl lg:text-4xl dark:text-white">Image <span class="text-blue-600 dark:text-blue-500">smart</span> search</h1>
-    <div class="w-full flex items-center justify-center gap-4">
+    <div class="field w-full flex items-center justify-center gap-4 sm:flex-col">
         <input class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" bind:value={searchTerm} type="search" placeholder="Search" />
         <button class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800" on:click={search}>Search</button>
     </div>
@@ -78,13 +79,6 @@
         max-width: 800px;
     }
 
-    .field button {
-        padding: 0.5em;
-        border: 1px solid #ccc;
-        border-left: 0;
-        border-top-right-radius: 0.25em;
-        border-bottom-right-radius: 0.25em;
-    }
 
     .result {
         display: flex;
@@ -92,14 +86,13 @@
     }
 
     @media (max-width: 640px) {
-        .search-area {
-            padding: 0px;
+        input {
+            min-width: unset;
+            width: 100%;
         }
 
         .field {
-            flex-direction: row;
-            min-width: 0;
-            width: 100%;
+            flex-direction: column;
         }
     }
 </style>

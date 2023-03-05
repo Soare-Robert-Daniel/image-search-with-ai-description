@@ -6,11 +6,40 @@
 	import ImageTile from "./ImageTile.svelte";
 
     let images: ImageItem[] = [];
+    let refreshCount: number = 0;
+    let interval: any = null;
 
     $: if( $imagesStore.length > ($applicationStore.currentPage) * $applicationStore.itemsPerPage ) {
         // TODO: Refactor this
         images = $imagesStore.slice(($applicationStore.currentPage) * $applicationStore.itemsPerPage, ($applicationStore.currentPage + 1) * $applicationStore.itemsPerPage);
     }
+
+    $: if( $applicationStore.refreshStatus === "start" ) {
+        refreshCount = 15;
+        $applicationStore.refreshStatus = "ongoing";
+        interval = setInterval(() => {
+            refreshCount--;
+            if( refreshCount === 0 ) {
+                clearInterval(interval);
+                $applicationStore.refreshStatus = "end";
+            }
+        }, 1000);
+    }
+
+    $: if( $applicationStore.refreshStatus === "end" ) {
+        getImages().then((result) => {
+            try {
+                imagesStore.set( result?.documents ?? []);
+            } catch(e) {
+                console.error(e);
+               
+            } finally {
+                clearInterval(interval);
+                $applicationStore.refreshStatus = "idle";
+            }
+        })
+    }
+
 
     onMount(() => {
         getImages().then((result) => {
@@ -30,12 +59,23 @@
     });
     
 </script>
-<div class="gallery mt-2 p-2 max-w-4xl bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
-    <div class="container">
-        {#each images as image}
-            <ImageTile name={image.name} src={image.src} prompt={image.prompt} />
-        {/each}
-     </div>
+
+<div class="w-full mt-2">
+    {#if $applicationStore.refreshStatus === "ongoing"}
+        <div class="mt-1 flex justify-center items-center">
+            <div class="flex flex-col items-center">
+                <div class="text-sm text-gray-700 dark:text-gray-200">Auto-Refreshing in {refreshCount} seconds</div>
+            </div>
+        </div>
+    {/if}
+    <div class="gallery mt-2 p-2 sm:p-1 max-w-4xl bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
+        <div class="container">
+            {#each images as image}
+                <ImageTile name={image.name} src={image.src} prompt={image.prompt} />
+            {/each}
+         </div>
+    </div>
+    
 </div>
 
 <style>
@@ -63,7 +103,7 @@
         }
 
         .container {
-            grid-template-columns: repeat(auto-fill, 160px);
+            grid-template-columns: repeat(auto-fill, 150px);
         }
     }
 </style>
