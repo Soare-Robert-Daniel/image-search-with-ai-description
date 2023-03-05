@@ -12,7 +12,7 @@
         var reader = new FileReader();
         reader.readAsDataURL(file);
         reader.onload = function () {
-            fetch(`${serverName}/image`, {
+            fetch('https://chimeinapp.net/image', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

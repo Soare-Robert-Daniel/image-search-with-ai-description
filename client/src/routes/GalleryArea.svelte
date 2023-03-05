@@ -60,7 +60,7 @@
     
 </script>
 
-<div class="w-full mt-2 flex justify-center items-center">
+<div class="w-full mt-2 flex justify-center items-center flex-col">
     {#if $applicationStore.refreshStatus === "ongoing"}
         <div class="mt-1 flex justify-center items-center">
             <div class="flex flex-col items-center">
