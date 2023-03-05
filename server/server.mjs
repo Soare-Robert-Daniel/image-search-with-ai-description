@@ -80,7 +80,7 @@ async function getVerificationUrl(imageUrl) {
         mode: 'fast'
       }
     },
-    { headers: { Authorization: `Token ${process.env.TOKEN}`, "Content-Type": "application/json" } },
+    { headers: { Authorization: `Token ${analyzerToken}`, "Content-Type": "application/json" } },
     );
 
     if (res.data?.status === 'starting') {
@@ -91,6 +91,10 @@ async function getVerificationUrl(imageUrl) {
   }
 }
 
+function delay(time) {
+  return new Promise(resolve => setTimeout(resolve, time));
+} 
+
 async function checkImages() {
   const newImages = await getAllNewImagesFromDb();
   
@@ -98,7 +102,7 @@ async function checkImages() {
     return;
   }
 
-  newImages.forEach(async (image) => {
+  for await (const image of newImages) {
     if (!image.path) {
       return;
     }
@@ -107,6 +111,7 @@ async function checkImages() {
     const imageBuffer = Buffer.from(base64Image, 'base64');
     const { mime } = await fileTypeFromBuffer(imageBuffer);
     const promptUrl = await getVerificationUrl(`data:${mime};base64,${base64Image}`);
+    
     if (!promptUrl) {
       return;
     }
@@ -120,24 +125,24 @@ async function checkImages() {
       id: image.id,
       promptUrl: promptUrl
     });
-  });
+
+    await delay(200); // Send one prediction request every 200ms ~ 5 requests per second
+  }
 }
 
 async function verifyImagePromptStatus(item) {
   try {
     const res = await axios.get(item.promptUrl,
-    { headers: { Authorization: `Token ${process.env.TOKEN}`, "Content-Type": "application/json" } },
+    { headers: { Authorization: `Token ${analyzerToken}`, "Content-Type": "application/json" } },
     );
 
     if (res.data?.status === 'succeeded') {
       await Image.update(
-        { status: 'finished', prompt: res.data?.output },
+        { status: 'ready', prompt: res.data?.output },
         { where: { id: item.id } }
       );
 
       urlsQueue = urlsQueue.filter(x => x.id !== item.id);
-    } else {
-      return;
     }
   } catch (err) {
     console.log(err);
@@ -145,12 +150,18 @@ async function verifyImagePromptStatus(item) {
 }
 
 async function verifyQueue() {
-  await checkImages();
 
+  // Check if I have images to process
   if (urlsQueue.length > 0) {
-    urlsQueue.forEach(async (item) => {
+
+    // very the first ten images in the queue
+    const items = urlsQueue.slice(0, 10);
+
+    for await (const item of items) {
       await verifyImagePromptStatus(item);
-    });
+    }
+  } else {
+    await checkImages();
   }
 }
 
@@ -200,8 +211,6 @@ fastify.get('/search', async (request, reply) => {
     reply.send({ error: "query not found" });
   }
 
-  console.log(`search query ${searchQuery}`);
-
   // make an call to remote api to find the 
   // similarity betwen search query and database prompts
   const images = await Image.findAll({
@@ -209,8 +218,6 @@ fastify.get('/search', async (request, reply) => {
       status: 'ready'
     }
   });
-
-  console.log('Count',images.length);
 
   const result = await axios.post(
     "https://api-inference.huggingface.co/models/sentence-transformers/all-MiniLM-L6-v2",
@@ -222,7 +229,6 @@ fastify.get('/search', async (request, reply) => {
     },
     { headers: { Authorization: `Bearer ${searchToken}`, "Content-Type": "application/json" } },
   );
-
 
   const data = images.map((image, index) => ({
     score: result.data[index],
@@ -299,7 +305,7 @@ fastify.listen({ port: 9000 }, async err => {
   for await (const entry of data_examples) {
     console.log(`adding '${entry.name}' to database`);
     if (entry.prompt) {
-      await Image.upsert({ name: entry.name, prompt: entry.prompt, src: entry.src, id: entry.id, status: 'new' })
+      await Image.upsert({ name: entry.name, prompt: entry.prompt, src: entry.src, id: entry.id, status: 'ready' })
     }
   }
 
