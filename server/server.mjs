@@ -57,6 +57,7 @@ const Image = sequelize.define('Image', {
   }
 }, { timestamps: false });
 
+const token = 'token';
 
 async function getAllNewImagesFromDb() {
   return await Image.findAll({
@@ -68,13 +69,12 @@ async function getAllNewImagesFromDb() {
 
 async function getVerificationUrl(imageUrl) {
   const baseUrl = 'https://api.replicate.com/v1/predictions';
-  const token = 'fake-token';
 
   try {
     const res = await axios.post(baseUrl, {
       version: "a4a8bafd6089e1716b06057c42b19378250d008b80fe87caa5cd36d40c1eda90",
       input: {
-        image: 'https://images.unsplash.com/photo-1674574124649-778f9afc0e9c?ixlib=rb-4.0.3&ixid=MnwxMjA3fDF8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80',
+        image: imageUrl,
         clip_model_name: 'ViT-L-14/openai',
         mode: 'fast'
       }
@@ -93,15 +93,19 @@ async function getVerificationUrl(imageUrl) {
 async function checkImages() {
   const newImages = await getAllNewImagesFromDb();
   
+  if (!newImages || newImages.length === 0) {
+    return;
+  }
+
   newImages.forEach(async (image) => {
     if (!image.path) {
       return;
     }
 
-    const base64Image = readFileSync(path, { encoding: 'base64' });
-    const imageBuffer = Buffer.from(base64Data, 'base64');
+    const base64Image = readFileSync(path.join(__dirname, image.path), { encoding: 'base64' });
+    const imageBuffer = Buffer.from(base64Image, 'base64');
     const { mime } = await fileTypeFromBuffer(imageBuffer);
-    const promptUrl = getVerificationUrl(`data:${mime};base64,${base64Image}`);
+    const promptUrl = await getVerificationUrl(`data:${mime};base64,${base64Image}`);
     if (!promptUrl) {
       return;
     }
@@ -143,8 +147,9 @@ async function verifyQueue() {
   await checkImages();
 
   if (urlsQueue.length > 0) {
-    const item = urlsQueue[0];
-    verifyImagePromptStatus(item);
+    urlsQueue.forEach(async (item) => {
+      await verifyImagePromptStatus(item);
+    });
   }
 }
 
