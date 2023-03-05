@@ -1,3 +1,4 @@
+import * as dotenv from 'dotenv';
 // Require the framework and instantiate it
 import Fastify from 'fastify';
 import { existsSync, mkdirSync, writeFileSync, readFileSync } from 'fs'
@@ -10,10 +11,9 @@ import { fileURLToPath } from 'url';
 import axios from 'axios';
 import { Sequelize, DataTypes, Model } from 'sequelize';
 
+dotenv.config();
 const searchToken = process.env.SEARCH_TOKEN;
 const analyzerToken = process.env.ANALYZER_TOKEN;
-
-console.log(searchToken)
 
 let urlsQueue = [];
 
@@ -60,8 +60,6 @@ const Image = sequelize.define('Image', {
   }
 }, { timestamps: false });
 
-const token = 'token';
-
 async function getAllNewImagesFromDb() {
   return await Image.findAll({
     where: {
@@ -82,7 +80,7 @@ async function getVerificationUrl(imageUrl) {
         mode: 'fast'
       }
     },
-    { headers: { Authorization: `Token ${token}`, "Content-Type": "application/json" } },
+    { headers: { Authorization: `Token ${process.env.TOKEN}`, "Content-Type": "application/json" } },
     );
 
     if (res.data?.status === 'starting') {
@@ -105,7 +103,7 @@ async function checkImages() {
       return;
     }
 
-    const base64Image = readFileSync(path.join(__dirname, image.path), { encoding: 'base64' });
+    const base64Image = readFileSync(image.path, { encoding: 'base64' });
     const imageBuffer = Buffer.from(base64Image, 'base64');
     const { mime } = await fileTypeFromBuffer(imageBuffer);
     const promptUrl = await getVerificationUrl(`data:${mime};base64,${base64Image}`);
@@ -128,7 +126,7 @@ async function checkImages() {
 async function verifyImagePromptStatus(item) {
   try {
     const res = await axios.get(item.promptUrl,
-    { headers: { Authorization: `Token ${token}`, "Content-Type": "application/json" } },
+    { headers: { Authorization: `Token ${process.env.TOKEN}`, "Content-Type": "application/json" } },
     );
 
     if (res.data?.status === 'succeeded') {
@@ -301,7 +299,7 @@ fastify.listen({ port: 9000 }, async err => {
   for await (const entry of data_examples) {
     console.log(`adding '${entry.name}' to database`);
     if (entry.prompt) {
-      await Image.upsert({ name: entry.name, prompt: null, src: entry.src, id: entry.id, status: 'new' })
+      await Image.upsert({ name: entry.name, prompt: entry.prompt, src: entry.src, id: entry.id, status: 'new' })
     }
   }
 
