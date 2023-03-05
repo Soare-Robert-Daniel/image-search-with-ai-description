@@ -30,7 +30,7 @@
     });
     
 </script>
-<div class="gallery p-2 max-w-4xl bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
+<div class="gallery mt-2 p-2 max-w-4xl bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
     <div class="container">
         {#each images as image}
             <ImageTile name={image.name} src={image.src} prompt={image.prompt} />
@@ -41,7 +41,6 @@
 <style>
 
     .gallery {
-        margin: 1rem;
         width: 100%;
         display: flex;
         justify-content: center;
