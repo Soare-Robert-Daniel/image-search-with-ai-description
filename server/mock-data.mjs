@@ -35,13 +35,13 @@ const data_examples = [
         id: 6,
         src: `${host_path}example-6.png`,
         name: 'Example 6',
-        prompt: 'a cartoon girl with a star on her head, pink iconic character, space molly, toon, girl, pixie, kid, chibi, by Robert Freebairn, cartoon illustration, by Bob Ringwood, super-hero girl, cooky, martine, happy girl, star, nighttime!, cartoonish and simplistic, dancing character, sally, gogo',
+        prompt: 'abstract art, tree, colorful, very cool picture',
     },
     {
         id: 7,
         src: `${host_path}example-7.png`,
         name: 'Example 7',
-        prompt: 'a cartoon girl with a star on her head, pink iconic character, space molly, toon, girl, pixie, kid, chibi, by Robert Freebairn, cartoon illustration, by Bob Ringwood, super-hero girl, cooky, martine, happy girl, star, nighttime!, cartoonish and simplistic, dancing character, sally, gogo',
+        prompt: 'mirror image with a bike in it, black and white, phote',
     },
     {
         id: 8,
@@ -59,7 +59,7 @@ const data_examples = [
         id: 10,
         src: `${host_path}example-10.png`,
         name: 'Example 10',
-        prompt: 'there is a rainbow in the sky over a fire, a matte painting, pixabay contest winner, holography, enb, iphone background, world of fire and blood, campfire, 8k n 9, comic book:.2 | unreal engine:.3, splash page, 420, colorful aesthetic'
+        prompt: 'girl, women, selfie, modern picture, yellow background, old'
     },
     {
         id: 11,

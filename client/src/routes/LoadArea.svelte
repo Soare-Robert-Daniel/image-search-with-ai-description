@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { applicationStore } from "../stores";
-	import { host } from "../utils";
+	import { serverName } from "../utils";
 
     let hasFileToLoad = false;
     let loadedFilesCount = 0;
@@ -12,7 +12,7 @@
         var reader = new FileReader();
         reader.readAsDataURL(file);
         reader.onload = function () {
-            fetch(`${host}/image`, {
+            fetch(`${serverName}/image`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
