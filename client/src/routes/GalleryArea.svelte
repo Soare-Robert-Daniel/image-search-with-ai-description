@@ -10,7 +10,6 @@
     let interval: any = null;
 
     $: if( $imagesStore.length > ($applicationStore.currentPage) * $applicationStore.itemsPerPage ) {
-        // TODO: Refactor this
         images = $imagesStore.slice(($applicationStore.currentPage) * $applicationStore.itemsPerPage, ($applicationStore.currentPage + 1) * $applicationStore.itemsPerPage);
     }
 

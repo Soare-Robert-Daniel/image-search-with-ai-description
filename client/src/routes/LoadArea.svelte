@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { applicationStore } from "../stores";
-	import { serverName } from "../utils";
 
     let hasFileToLoad = false;
     let loadedFilesCount = 0;

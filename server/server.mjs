@@ -60,6 +60,9 @@ const Image = sequelize.define('Image', {
   }
 }, { timestamps: false });
 
+
+// +---------------------- Analyzer ----------------------+
+
 async function getAllNewImagesFromDb() {
   return await Image.findAll({
     where: {
@@ -150,11 +153,8 @@ async function verifyImagePromptStatus(item) {
 }
 
 async function verifyQueue() {
-
-  // Check if I have images to process
   if (urlsQueue.length > 0) {
 
-    // very the first ten images in the queue
     const items = urlsQueue.slice(0, 10);
 
     for await (const item of items) {
@@ -166,6 +166,8 @@ async function verifyQueue() {
 }
 
 setInterval(verifyQueue, 2000);
+
+// +---------------------- Plugins ----------------------+
 
 fastify.register(cors, (instance) => {
   return (req, callback) => {
@@ -184,7 +186,6 @@ fastify.register(cors, (instance) => {
   }
 })
 
-
 fastify.register(fastStatic, {
   root: join(__dirname, 'assets'),
   prefix: '/images/',
@@ -196,10 +197,9 @@ fastify.register(fastStatic, {
   decorateReply: false
 })
 
-// this is the search endpoint, which returns a list of prompts
-// that match the search query. It uses the redisearch engine to
-// perform the search
+// +---------------------- Routes ----------------------+
 
+// this endpoint return the scores for the prompts similarity to the query string
 fastify.get('/search', async (request, reply) => {
   // get the query string from the request
   const searchQuery = request.query.query;
@@ -211,8 +211,6 @@ fastify.get('/search', async (request, reply) => {
     reply.send({ error: "query not found" });
   }
 
-  // make an call to remote api to find the 
-  // similarity betwen search query and database prompts
   const images = await Image.findAll({
     where: {
       status: 'ready'
@@ -244,12 +242,8 @@ fastify.get('/search', async (request, reply) => {
   });
 })
 
-// This code will get the list of images from the redis database
-// The images will be stored as a json object in the database
-// The code will return a json object with the list of images
-
+// this is the endpoint that returns a list of all the images
 fastify.get('/', async (request, reply) => {
-  // get all the items from the redis database
   const results = await Image.findAll();
   reply.send({
     total: results.length,
@@ -276,32 +270,40 @@ fastify.post('/image', async (request, reply) => {
 
   const { data, name } = request.body;
 
+  /**
+   * Save image to disk.
+   */
+
   const base64Data = data.split(';base64,').pop();
   const imageBuffer = Buffer.from(base64Data, 'base64');
   const imageType = await fileTypeFromBuffer(imageBuffer);
 
-  const hash = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15) + '__' + (name.split(' ').filter(x => x).join('_')) + '.' + imageType.ext;
+  const saveName = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15) + '__' + (name.split(' ').filter(x => x).join('_')) + '.' + imageType.ext;
   
-  // check if folder uploads exists
   if (!existsSync(join(__dirname, 'uploads'))) {
     mkdirSync(join(__dirname, 'uploads'));
   }
   
-  const imagePath = join(__dirname, 'uploads', hash);
+  const imagePath = join(__dirname, 'uploads', saveName);
   writeFileSync(imagePath, imageBuffer);
 
   const hostUrl = request.protocol + '://' + request.hostname;
-  const imageUrl = hostUrl + '/uploads/' + hash;
+  const imageUrl = hostUrl + '/uploads/' + saveName;
 
-  await Image.upsert({ name, src: imageUrl, id: hash, status: 'new', path: imagePath });
+  await Image.upsert({ name, src: imageUrl, id: saveName, status: 'new', path: imagePath });
 
-  reply.send({ id: hash, name: name, src: imageUrl, path: imagePath });
+  reply.send({ id: saveName, name: name, src: imageUrl, path: imagePath });
 })
+
+// +---------------------- Start Server ----------------------+
 
 fastify.listen({ port: 3000 }, async err => {
   if (err) throw err
+
+  // Clean up the database.
   await sequelize.sync({ force: true });
-  // Add data to the sqlite database
+  
+  // Add the example images to the database.
   for await (const entry of data_examples) {
     console.log(`adding '${entry.name}' to database`);
     if (entry.prompt) {
