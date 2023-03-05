@@ -20,7 +20,10 @@ let urlsQueue = [];
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const fastify = Fastify({ logger: true });
+const fastify = Fastify({ 
+  logger: true,
+  bodyLimit: 30 * 1024 * 1024 // Default Limit set to 30MB 
+});
 
 const sequelize = new Sequelize({
   dialect: 'sqlite',
