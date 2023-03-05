@@ -1,4 +1,4 @@
-const host_path = 'http://localhost:9000/images/'
+const host_path = 'https://chimeinapp.net/images/'
 
 const data_examples = [
     {
