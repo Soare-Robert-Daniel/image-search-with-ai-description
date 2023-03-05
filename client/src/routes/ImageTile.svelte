@@ -10,21 +10,22 @@
     }
 </script>
 
-<div class="img-box" class:show={show}>
+<div class="relative block max-w-sm p-1 rounded-lg hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700" class:show={show}>
     {#if show}
-        <div class="overlay">
+        <div class="prompt overflow-y-auto">
             <p>{prompt}</p>
         </div>
+    {:else}
+        <img alt={prompt} {src} >
     {/if}
-    <img alt={prompt} {src} >
-    <div class="metadata">
+    <div class="metadata mt-2">
         <p>{name}</p>
-        <div class="actions">
-            <button on:click={onShowClick} class="btn-show">
+        <div class="actions flex items-center justify-center">
+            <button on:click={onShowClick} class="text-blue-700 hover:text-white border border-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-2 py-1 text-center dark:border-blue-500 dark:text-blue-500 dark:hover:text-white dark:hover:bg-blue-600 dark:focus:ring-blue-800">
                 {#if show}
                     Hide
                 {:else}
-                    Show
+                    Text
                 {/if}
             </button>
         </div>
@@ -32,31 +33,22 @@
 </div>
 
 <style>
-    .img-box {
-        display: flex;
-        flex-direction: column;
-        gap: 0px;
-
-        box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.5);
-        position: relative;
-    }
 
     img {
+        aspect-ratio: auto;
+    }
+
+    .prompt, img {
         width: 200px;
         height: 200px;
-        aspect-ratio: auto;
     }
 
     .metadata {
         width: 100%;
-
         box-sizing: border-box;
-
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 5px;
-        
     }
 
     p {
