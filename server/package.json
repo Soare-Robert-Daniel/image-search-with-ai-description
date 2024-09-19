@@ -17,7 +17,7 @@
     "@redis/search": "^1.1.2",
     "axios": "^1.6.0",
     "dotenv": "^16.0.3",
-    "fastify": "^4.14.0",
+    "fastify": "^4.28.1",
     "file-type": "^18.2.1",
     "sequelize": "^6.29.0",
     "sqlite3": "^5.1.5"
