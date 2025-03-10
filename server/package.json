@@ -15,7 +15,7 @@
     "@fastify/static": "^6.9.0",
     "@redis/json": "^1.0.4",
     "@redis/search": "^1.1.2",
-    "axios": "^1.6.0",
+    "axios": "^1.8.2",
     "dotenv": "^16.0.3",
     "fastify": "^4.28.1",
     "file-type": "^18.2.1",
